@@ -7,10 +7,10 @@ public class SpaceGame extends JFrame implements KeyListener {
     private static final int HEIGHT = 500;
     private static final int PLAYER_WIDTH = 50;
     private static final int PLAYER_HEIGHT = 50;
-    private static final int OBSTACLE_WIDTH = 20;
-    private static final int OBSTACLE_HEIGHT = 20;
+    private static final int OBSTACLE_WIDTH = 40;
+    private static final int OBSTACLE_HEIGHT = 40;
     private static final int PROJECTILE_WIDTH = 5;
-    private static final int PROJECTILE_HEIGHT = 10;
+    private static final int PROJECTILE_HEIGHT = 15;
     private static final int PLAYER_SPEED = 10;
     private static final int OBSTACLE_SPEED = 3;
     private static final int PROJECTILE_SPEED = 10;
@@ -27,6 +27,9 @@ public class SpaceGame extends JFrame implements KeyListener {
     private boolean isProjectileVisible;
     private boolean isFiring;
     private java.util.List<Point> obstacles;
+    private Image playerImage = new ImageIcon(getClass().getResource("rsH6n.png")).getImage();
+    private Image obstacleImage = new ImageIcon(getClass().getResource("alien.png")).getImage();
+    private Image backgroundImage = new ImageIcon(getClass().getResource("bg_02_h.png")).getImage();
 
     public SpaceGame() {
         setTitle("Space Game");
@@ -78,22 +81,24 @@ public class SpaceGame extends JFrame implements KeyListener {
     }
 
     private void draw(Graphics g) {
-        g.setColor(Color.BLACK);
-        g.fillRect(0, 0, WIDTH, HEIGHT);
+        // Draw the background
+        g.drawImage(backgroundImage, 0, 0, WIDTH, HEIGHT, this);
 
-        g.setColor(Color.BLUE);
-        g.fillRect(playerX, playerY, PLAYER_WIDTH, PLAYER_HEIGHT);
+        // Draw the player using the player image
+        g.drawImage(playerImage, playerX, playerY, PLAYER_WIDTH, PLAYER_HEIGHT, this);
 
+        // Draw the projectile if it is visible, using a simple rectangle
         if (isProjectileVisible) {
             g.setColor(Color.GREEN);
             g.fillRect(projectileX, projectileY, PROJECTILE_WIDTH, PROJECTILE_HEIGHT);
         }
 
-        g.setColor(Color.RED);
+        // Draw each obstacle using the obstacle image
         for (Point obstacle : obstacles) {
-            g.fillRect(obstacle.x, obstacle.y, OBSTACLE_WIDTH, OBSTACLE_HEIGHT);
+            g.drawImage(obstacleImage, obstacle.x, obstacle.y, OBSTACLE_WIDTH, OBSTACLE_HEIGHT, this);
         }
 
+        // If the game is over, draw the game over text
         if (isGameOver) {
             g.setColor(Color.WHITE);
             g.setFont(new Font("Arial", Font.BOLD, 24));
