@@ -11,7 +11,7 @@ public class SpaceGame extends JFrame implements KeyListener {
     private static final int OBSTACLE_HEIGHT = 20;
     private static final int PROJECTILE_WIDTH = 5;
     private static final int PROJECTILE_HEIGHT = 10;
-    private static final int PLAYER_SPEED = 5;
+    private static final int PLAYER_SPEED = 10;
     private static final int OBSTACLE_SPEED = 3;
     private static final int PROJECTILE_SPEED = 10;
     private int score = 0;
