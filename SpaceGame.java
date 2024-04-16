@@ -15,9 +15,11 @@ public class SpaceGame extends JFrame implements KeyListener {
     private static final int OBSTACLE_SPEED = 3;
     private static final int PROJECTILE_SPEED = 10;
     private int score = 0;
+    private int health = 100;
 
     private JPanel gamePanel;
     private JLabel scoreLabel;
+    private JLabel healthLabel;
     private Timer timer;
     private boolean isGameOver;
     private int playerX, playerY;
@@ -42,7 +44,13 @@ public class SpaceGame extends JFrame implements KeyListener {
 
         scoreLabel = new JLabel("Score: 0");
         scoreLabel.setBounds(10, 10, 100, 20);
+        scoreLabel.setForeground(Color.GREEN);
         gamePanel.add(scoreLabel);
+
+        healthLabel = new JLabel("Health: 100");
+        healthLabel.setBounds(10, 0, 100, 20);
+        healthLabel.setForeground(Color.ORANGE);
+        gamePanel.add(healthLabel);
 
         add(gamePanel);
         gamePanel.setFocusable(true);
@@ -123,7 +131,8 @@ public class SpaceGame extends JFrame implements KeyListener {
             for (Point obstacle : obstacles) {
                 Rectangle obstacleRect = new Rectangle(obstacle.x, obstacle.y, OBSTACLE_WIDTH, OBSTACLE_HEIGHT);
                 if (playerRect.intersects(obstacleRect)) {
-                    isGameOver = true;
+                    health -= 1;
+                    isProjectileVisible = false;
                     break;
                 }
             }
@@ -140,7 +149,11 @@ public class SpaceGame extends JFrame implements KeyListener {
                 }
             }
 
+            if (health == 0) {
+                isGameOver = true;
+            }
             scoreLabel.setText("Score: " + score);
+            healthLabel.setText("Health: " + health);
         }
     }
 
