@@ -103,6 +103,7 @@ public class SpaceGame extends JFrame implements KeyListener {
             g.setColor(Color.WHITE);
             g.setFont(new Font("Arial", Font.BOLD, 24));
             g.drawString("Game Over!", WIDTH / 2 - 80, HEIGHT / 2);
+            g.drawString("Press Enter to play again", WIDTH / 2 - 150, HEIGHT / 2 + 20);
         }
     }
 
@@ -162,6 +163,20 @@ public class SpaceGame extends JFrame implements KeyListener {
         }
     }
 
+    private void restartGame() {
+        // Reset all game state variables
+        score = 0;
+        health = 100;
+        playerX = WIDTH / 2 - PLAYER_WIDTH / 2;
+        playerY = HEIGHT - PLAYER_HEIGHT - 20;
+        projectileX = playerX + PLAYER_WIDTH / 2 - PROJECTILE_WIDTH / 2;
+        projectileY = playerY;
+        isProjectileVisible = false;
+        isGameOver = false;
+        obstacles.clear(); // Clear all obstacles
+        gamePanel.repaint(); // Redraw the panel to update the UI
+    }
+
     @Override
     public void keyPressed(KeyEvent e) {
         int keyCode = e.getKeyCode();
@@ -185,6 +200,8 @@ public class SpaceGame extends JFrame implements KeyListener {
                     }
                 }
             }).start();
+        } else if (keyCode == KeyEvent.VK_ENTER && isGameOver) {
+            restartGame();
         }
     }
 
