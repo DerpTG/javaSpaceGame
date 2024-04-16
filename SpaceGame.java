@@ -15,7 +15,7 @@ public class SpaceGame extends JFrame implements KeyListener {
     private static final int OBSTACLE_SPEED = 3;
     private static final int PROJECTILE_SPEED = 10;
     private int score = 0;
-    private int health = 100;
+    private int health = 200;
 
     private JPanel gamePanel;
     private JLabel scoreLabel;
