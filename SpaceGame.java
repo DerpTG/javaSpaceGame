@@ -49,11 +49,14 @@ public class SpaceGame extends JFrame implements KeyListener {
     private static final int PROJECTILE_SPEED = 10;
     private int score = 0;
     private int health = 100;
+    private int remainingTime = 10;
 
     private JPanel gamePanel;
     private JLabel scoreLabel;
     private JLabel healthLabel;
+    private JLabel timeLabel;
     private Timer timer;
+    private Timer endGameTimer;
     private boolean isGameOver;
     private int playerX, playerY;
     private int projectileX, projectileY;
@@ -88,6 +91,11 @@ public class SpaceGame extends JFrame implements KeyListener {
         healthLabel.setForeground(Color.ORANGE);
         gamePanel.add(healthLabel);
 
+        timeLabel = new JLabel("Time: " + remainingTime + "s");
+        timeLabel.setBounds(10, 50, 100, 20);
+        timeLabel.setForeground(Color.WHITE);
+        gamePanel.add(timeLabel);
+
         add(gamePanel);
         gamePanel.setFocusable(true);
         gamePanel.addKeyListener(this);
@@ -111,6 +119,21 @@ public class SpaceGame extends JFrame implements KeyListener {
             }
         });
         timer.start();
+
+        // Timer for 1 minute
+        endGameTimer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                remainingTime--;
+                timeLabel.setText("Time: " + remainingTime + "s");
+                if (remainingTime <= 0) {
+                    endGame();
+                }
+            }
+        });
+        endGameTimer.setRepeats(true); // Set to repeat
+        endGameTimer.start();
+
     }
 
     private void loadObstacleSprites() {
@@ -231,7 +254,6 @@ public class SpaceGame extends JFrame implements KeyListener {
                 }
             }
 
-
             scoreLabel.setText("Score: " + score);
             healthLabel.setText("Health: " + health);
         }
@@ -243,10 +265,16 @@ public class SpaceGame extends JFrame implements KeyListener {
         obstacles.add(new Obstacle(obstacleX, -OBSTACLE_HEIGHT, spriteIndex));
     }
 
+    private void endGame() {
+        isGameOver = true;
+        endGameTimer.stop(); // Stop the endGameTimer
+    }
+
     private void restartGame() {
         // Reset all game state variables
         score = 0;
         health = 100;
+        remainingTime = 60;
         playerX = WIDTH / 2 - PLAYER_WIDTH / 2;
         playerY = HEIGHT - PLAYER_HEIGHT - 20;
         projectileX = playerX + PLAYER_WIDTH / 2 - PROJECTILE_WIDTH / 2;
