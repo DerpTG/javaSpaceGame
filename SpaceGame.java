@@ -3,10 +3,39 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.CropImageFilter;
 import java.awt.image.FilteredImageSource;
+import java.util.Iterator;
 import java.util.Random;
+import java.util.List;
+import java.util.ArrayList;
+
+class Star {
+    int x, y;
+    Color color;
+    int lifetime;
+
+    Star(int x, int y, Color color, int lifetime) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.lifetime = lifetime;
+    }
+}
+
+class Obstacle {
+    Point position;
+    int spriteIndex;
+
+    public Obstacle(int x, int y, int spriteIndex) {
+        this.position = new Point(x, y);
+        this.spriteIndex = spriteIndex;
+    }
+}
 
 public class SpaceGame extends JFrame implements KeyListener {
     private Random random = new Random();
+    private List<Star> stars = new ArrayList<>();
+    private int starDelay = 0;
+
     private static final int WIDTH = 500;
     private static final int HEIGHT = 500;
     private static final int PLAYER_WIDTH = 50;
@@ -30,22 +59,16 @@ public class SpaceGame extends JFrame implements KeyListener {
     private int projectileX, projectileY;
     private boolean isProjectileVisible;
     private boolean isFiring;
-    private java.util.List<Point> obstacles;
+    private List<Obstacle> obstacles = new ArrayList<>();
     private Image playerImage = new ImageIcon(getClass().getResource("rsH6n.png")).getImage();
     private Image[] obstacleImages = new Image[4];
-    private Image backgroundImage = new ImageIcon(getClass().getResource("bg_02_h.png")).getImage();
 
     public SpaceGame() {
         setTitle("Space Game");
         setSize(WIDTH, HEIGHT);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
-
-        Image spritesheet = new ImageIcon(getClass().getResource("spritesheet.png")).getImage();
-        for (int i = 0; i < 4; i++) {
-            obstacleImages[i] = createImage(new FilteredImageSource(spritesheet.getSource(),
-                    new CropImageFilter(i * OBSTACLE_WIDTH, 0, OBSTACLE_WIDTH, OBSTACLE_HEIGHT)));
-        }
+        loadObstacleSprites();
 
         gamePanel = new JPanel() {
             @Override
@@ -90,10 +113,27 @@ public class SpaceGame extends JFrame implements KeyListener {
         timer.start();
     }
 
+    private void loadObstacleSprites() {
+        int spriteWidth = 250; // The actual width of a single sprite
+        int spriteHeight = 250; // The actual height of a single sprite
+        Image spritesheet = new ImageIcon(getClass().getResource("spritesheet.png")).getImage();
+
+        // Assuming there's a 20-pixel gap between each sprite
+        for (int i = 0; i < 4; i++) {
+            int xOffset = i * (spriteWidth + 30);
+            Image sprite = Toolkit.getDefaultToolkit().createImage(
+                    new FilteredImageSource(spritesheet.getSource(),
+                            new CropImageFilter(xOffset, 0, spriteWidth - 20, spriteHeight)));
+
+            obstacleImages[i] = sprite.getScaledInstance(OBSTACLE_WIDTH, OBSTACLE_HEIGHT, Image.SCALE_SMOOTH);
+        }
+    }
+
     private void draw(Graphics g) {
         Random random = new Random();
-        // Draw the background
-        g.drawImage(backgroundImage, 0, 0, WIDTH, HEIGHT, this);
+        /// Set the background to black
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, WIDTH, HEIGHT);
 
         // Draw the player using the player image
         g.drawImage(playerImage, playerX, playerY, PLAYER_WIDTH, PLAYER_HEIGHT, this);
@@ -105,17 +145,19 @@ public class SpaceGame extends JFrame implements KeyListener {
         }
 
         // Draw each obstacle using the obstacle image
-        for (Point obstacle : obstacles) {
-            int imageIndex = random.nextInt(obstacleImages.length); // Choose a random image index
-            g.drawImage(obstacleImages[imageIndex], obstacle.x, obstacle.y, OBSTACLE_WIDTH, OBSTACLE_HEIGHT, this);
+        for (Obstacle obstacle : obstacles) {
+            g.drawImage(obstacleImages[obstacle.spriteIndex], obstacle.position.x, obstacle.position.y, OBSTACLE_WIDTH, OBSTACLE_HEIGHT, this);
         }
 
-        for (int i = 0; i < 50; i++) {
-            int x = random.nextInt(WIDTH);
-            int y = random.nextInt(HEIGHT);
-            Color starColor = new Color(random.nextInt(256), random.nextInt(256), random.nextInt(256));
-            g.setColor(starColor);
-            g.fillOval(x, y, 2, 2);
+        // Draw stars
+        Iterator<Star> it = stars.iterator();
+        while (it.hasNext()) {
+            Star star = it.next();
+            g.setColor(star.color);
+            g.fillOval(star.x, star.y, 4, 4);
+            if (--star.lifetime <= 0) {
+                it.remove(); // Remove the star when its lifetime is over
+            }
         }
 
         // If the game is over, draw the game over text
@@ -127,22 +169,29 @@ public class SpaceGame extends JFrame implements KeyListener {
         }
     }
 
-
     private void update() {
         if (!isGameOver) {
+            // Star Updater
+            if (random.nextInt(10) < 1) {
+                int x = random.nextInt(WIDTH);
+                int y = random.nextInt(HEIGHT);
+                Color color = new Color(random.nextInt(256), random.nextInt(256), random.nextInt(256));
+                stars.add(new Star(x, y, color, 100));
+            }
+
             // Move obstacles
-            for (int i = 0; i < obstacles.size(); i++) {
-                obstacles.get(i).y += OBSTACLE_SPEED;
-                if (obstacles.get(i).y > HEIGHT) {
-                    obstacles.remove(i);
-                    i--;
+            Iterator<Obstacle> iterator = obstacles.iterator();
+            while (iterator.hasNext()) {
+                Obstacle obstacle = iterator.next();
+                obstacle.position.y += OBSTACLE_SPEED;
+                if (obstacle.position.y > HEIGHT) {
+                    iterator.remove();
                 }
             }
 
             // Generate new obstacles
             if (Math.random() < 0.02) {
-                int obstacleX = (int) (Math.random() * (WIDTH - OBSTACLE_WIDTH));
-                obstacles.add(new Point(obstacleX, 0));
+                createObstacle();
             }
 
             // Move projectile
@@ -155,33 +204,44 @@ public class SpaceGame extends JFrame implements KeyListener {
 
             // Check collision with player
             Rectangle playerRect = new Rectangle(playerX, playerY, PLAYER_WIDTH, PLAYER_HEIGHT);
-            for (Point obstacle : obstacles) {
-                Rectangle obstacleRect = new Rectangle(obstacle.x, obstacle.y, OBSTACLE_WIDTH, OBSTACLE_HEIGHT);
+            iterator = obstacles.iterator();
+            while (iterator.hasNext()) {
+                Obstacle obstacle = iterator.next();
+                Rectangle obstacleRect = new Rectangle(obstacle.position.x, obstacle.position.y, OBSTACLE_WIDTH, OBSTACLE_HEIGHT);
                 if (playerRect.intersects(obstacleRect)) {
                     health -= 1;
-                    isProjectileVisible = false;
-                    break;
+                    iterator.remove(); // Remove the obstacle that collided with the player
+                    if (health <= 0) {
+                        isGameOver = true;
+                        break; // Exit loop to avoid concurrent modification exception
+                    }
                 }
             }
 
             // Check collision with obstacle
             Rectangle projectileRect = new Rectangle(projectileX, projectileY, PROJECTILE_WIDTH, PROJECTILE_HEIGHT);
-            for (int i = 0; i < obstacles.size(); i++) {
-                Rectangle obstacleRect = new Rectangle(obstacles.get(i).x, obstacles.get(i).y, OBSTACLE_WIDTH, OBSTACLE_HEIGHT);
+            Iterator<Obstacle> obstacleIterator  = obstacles.iterator();
+            while (obstacleIterator .hasNext()) {
+                Obstacle obstacle = obstacleIterator .next();
+                Rectangle obstacleRect = new Rectangle(obstacle.position.x, obstacle.position.y, OBSTACLE_WIDTH, OBSTACLE_HEIGHT);
                 if (projectileRect.intersects(obstacleRect)) {
-                    obstacles.remove(i);
+                    obstacleIterator .remove();
                     score += 10;
                     isProjectileVisible = false;
                     break;
                 }
             }
 
-            if (health == 0) {
-                isGameOver = true;
-            }
+
             scoreLabel.setText("Score: " + score);
             healthLabel.setText("Health: " + health);
         }
+    }
+
+    private void createObstacle() {
+        int obstacleX = random.nextInt(WIDTH - OBSTACLE_WIDTH);
+        int spriteIndex = random.nextInt(obstacleImages.length);
+        obstacles.add(new Obstacle(obstacleX, -OBSTACLE_HEIGHT, spriteIndex));
     }
 
     private void restartGame() {
