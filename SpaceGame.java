@@ -114,16 +114,15 @@ public class SpaceGame extends JFrame implements KeyListener {
     }
 
     private void loadObstacleSprites() {
-        int spriteWidth = 250; // The actual width of a single sprite
-        int spriteHeight = 250; // The actual height of a single sprite
+        int spriteWidth = 250;
+        int spriteHeight = 250;
         Image spritesheet = new ImageIcon(getClass().getResource("spritesheet.png")).getImage();
 
-        // Assuming there's a 20-pixel gap between each sprite
         for (int i = 0; i < 4; i++) {
             int xOffset = i * (spriteWidth + 30);
             Image sprite = Toolkit.getDefaultToolkit().createImage(
-                    new FilteredImageSource(spritesheet.getSource(),
-                            new CropImageFilter(xOffset, 0, spriteWidth - 20, spriteHeight)));
+                new FilteredImageSource(spritesheet.getSource(),
+                new CropImageFilter(xOffset, 0, spriteWidth - 20, spriteHeight)));
 
             obstacleImages[i] = sprite.getScaledInstance(OBSTACLE_WIDTH, OBSTACLE_HEIGHT, Image.SCALE_SMOOTH);
         }
@@ -156,7 +155,7 @@ public class SpaceGame extends JFrame implements KeyListener {
             g.setColor(star.color);
             g.fillOval(star.x, star.y, 4, 4);
             if (--star.lifetime <= 0) {
-                it.remove(); // Remove the star when its lifetime is over
+                it.remove();
             }
         }
 
