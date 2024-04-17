@@ -1,8 +1,12 @@
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.CropImageFilter;
+import java.awt.image.FilteredImageSource;
+import java.util.Random;
 
 public class SpaceGame extends JFrame implements KeyListener {
+    private Random random = new Random();
     private static final int WIDTH = 500;
     private static final int HEIGHT = 500;
     private static final int PLAYER_WIDTH = 50;
@@ -28,7 +32,7 @@ public class SpaceGame extends JFrame implements KeyListener {
     private boolean isFiring;
     private java.util.List<Point> obstacles;
     private Image playerImage = new ImageIcon(getClass().getResource("rsH6n.png")).getImage();
-    private Image obstacleImage = new ImageIcon(getClass().getResource("alien.png")).getImage();
+    private Image[] obstacleImages = new Image[4];
     private Image backgroundImage = new ImageIcon(getClass().getResource("bg_02_h.png")).getImage();
 
     public SpaceGame() {
@@ -36,6 +40,12 @@ public class SpaceGame extends JFrame implements KeyListener {
         setSize(WIDTH, HEIGHT);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(false);
+
+        Image spritesheet = new ImageIcon(getClass().getResource("spritesheet.png")).getImage();
+        for (int i = 0; i < 4; i++) {
+            obstacleImages[i] = createImage(new FilteredImageSource(spritesheet.getSource(),
+                    new CropImageFilter(i * OBSTACLE_WIDTH, 0, OBSTACLE_WIDTH, OBSTACLE_HEIGHT)));
+        }
 
         gamePanel = new JPanel() {
             @Override
@@ -47,7 +57,7 @@ public class SpaceGame extends JFrame implements KeyListener {
 
         scoreLabel = new JLabel("Score: 0");
         scoreLabel.setBounds(10, 10, 100, 20);
-        scoreLabel.setForeground(Color.GREEN);
+        scoreLabel.setForeground(Color.BLUE);
         gamePanel.add(scoreLabel);
 
         healthLabel = new JLabel("Health: 100");
@@ -81,6 +91,7 @@ public class SpaceGame extends JFrame implements KeyListener {
     }
 
     private void draw(Graphics g) {
+        Random random = new Random();
         // Draw the background
         g.drawImage(backgroundImage, 0, 0, WIDTH, HEIGHT, this);
 
@@ -95,7 +106,16 @@ public class SpaceGame extends JFrame implements KeyListener {
 
         // Draw each obstacle using the obstacle image
         for (Point obstacle : obstacles) {
-            g.drawImage(obstacleImage, obstacle.x, obstacle.y, OBSTACLE_WIDTH, OBSTACLE_HEIGHT, this);
+            int imageIndex = random.nextInt(obstacleImages.length); // Choose a random image index
+            g.drawImage(obstacleImages[imageIndex], obstacle.x, obstacle.y, OBSTACLE_WIDTH, OBSTACLE_HEIGHT, this);
+        }
+
+        for (int i = 0; i < 50; i++) {
+            int x = random.nextInt(WIDTH);
+            int y = random.nextInt(HEIGHT);
+            Color starColor = new Color(random.nextInt(256), random.nextInt(256), random.nextInt(256));
+            g.setColor(starColor);
+            g.fillOval(x, y, 2, 2);
         }
 
         // If the game is over, draw the game over text
@@ -106,6 +126,7 @@ public class SpaceGame extends JFrame implements KeyListener {
             g.drawString("Press Enter to play again", WIDTH / 2 - 150, HEIGHT / 2 + 20);
         }
     }
+
 
     private void update() {
         if (!isGameOver) {
