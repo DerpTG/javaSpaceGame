@@ -98,9 +98,16 @@ public class SpaceGame extends JFrame implements KeyListener {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                draw(g);
+                if (!levelSelected) {
+                    drawLevelSelection(g);
+                } else if (isGameOver) {
+                    drawGameOver(g);
+                } else {
+                    drawGame(g);
+                }
             }
         };
+
 
         scoreLabel = new JLabel("Score: 0");
         scoreLabel.setBounds(10, 10, 100, 20);
@@ -187,60 +194,59 @@ public class SpaceGame extends JFrame implements KeyListener {
         }
     }
 
-    private void draw(Graphics g) {
-        if (!levelSelected) {
-            // Set the background to black
-            g.setColor(Color.BLACK);
-            g.fillRect(0, 0, WIDTH, HEIGHT);
+    private void drawLevelSelection(Graphics g) {
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, WIDTH, HEIGHT);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 24));
+        g.drawString("Select Level:", WIDTH / 2 - 100, HEIGHT / 2 - 30);
+        g.drawString("1 - Easy", WIDTH / 2 - 80, HEIGHT / 2);
+        g.drawString("2 - Hard", WIDTH / 2 - 80, HEIGHT / 2 + 30);
+    }
 
-            // Draw level selection options
-            g.setColor(Color.WHITE);
-            g.setFont(new Font("Arial", Font.BOLD, 24));
-            g.drawString("Select Level:", WIDTH / 2 - 100, HEIGHT / 2 - 30);
-            g.drawString("1 - Easy", WIDTH / 2 - 80, HEIGHT / 2);
-            g.drawString("2 - Hard", WIDTH / 2 - 80, HEIGHT / 2 + 30);
-        } else {
-            if (isGameOver) {
-                g.setColor(Color.BLACK);
-                g.fillRect(0, 0, WIDTH, HEIGHT); // Ensure background is cleared
-                g.setColor(Color.WHITE);
-                g.setFont(new Font("Arial", Font.BOLD, 24));
-                g.drawString("Game Over!", WIDTH / 2 - 80, HEIGHT / 2);
-                g.drawString("Press Enter to Play Again.", WIDTH / 2 - 150, HEIGHT / 2 + 20);
-            }
-            /// Set the background to black
-            g.setColor(Color.BLACK);
-            g.fillRect(0, 0, WIDTH, HEIGHT);
+    private void drawGameOver(Graphics g) {
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, WIDTH, HEIGHT);
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 24));
+        g.drawString("Game Over!", WIDTH / 2 - 100, HEIGHT / 2 - 20);
+        g.drawString("Press Enter to Play Again.", WIDTH / 2 - 180, HEIGHT / 2 + 20);
+    }
 
-            // Draw the player using the player image
-            g.drawImage(playerImage, playerX, playerY, PLAYER_WIDTH, PLAYER_HEIGHT, this);
 
-            // Draw the projectile if it is visible, using a simple rectangle
-            if (isProjectileVisible) {
-                g.setColor(Color.GREEN);
-                g.fillRect(projectileX, projectileY, PROJECTILE_WIDTH, PROJECTILE_HEIGHT);
-            }
+    private void drawGame(Graphics g) {
+        /// Set the background to black
+        g.setColor(Color.BLACK);
+        g.fillRect(0, 0, WIDTH, HEIGHT);
 
-            // Draw each obstacle using the obstacle image
-            for (Obstacle obstacle : obstacles) {
-                g.drawImage(obstacleImages[obstacle.spriteIndex], obstacle.position.x, obstacle.position.y, OBSTACLE_WIDTH, OBSTACLE_HEIGHT, this);
-            }
+        // Draw the player using the player image
+        g.drawImage(playerImage, playerX, playerY, PLAYER_WIDTH, PLAYER_HEIGHT, this);
 
-            // Draw the shield if it is active
-            if (isShieldActive) {
-                g.setColor(Color.GREEN);
-                g.drawOval(playerX - 5, playerY - 5, PLAYER_WIDTH + 10, PLAYER_HEIGHT + 10);
-            }
+        // Draw the projectile if it is visible, using a simple rectangle
+        if (isProjectileVisible) {
+            g.setColor(Color.GREEN);
+            g.fillRect(projectileX, projectileY, PROJECTILE_WIDTH, PROJECTILE_HEIGHT);
+        }
 
-            // Draw stars
-            Iterator<Star> it = stars.iterator();
-            while (it.hasNext()) {
-                Star star = it.next();
-                g.setColor(star.color);
-                g.fillOval(star.x, star.y, 4, 4);
-                if (--star.lifetime <= 0) {
-                    it.remove();
-                }
+        // Draw each obstacle using the obstacle image
+        for (Obstacle obstacle : obstacles) {
+            g.drawImage(obstacleImages[obstacle.spriteIndex], obstacle.position.x, obstacle.position.y, OBSTACLE_WIDTH, OBSTACLE_HEIGHT, this);
+        }
+
+        // Draw the shield if it is active
+        if (isShieldActive) {
+            g.setColor(Color.GREEN);
+            g.drawOval(playerX - 5, playerY - 5, PLAYER_WIDTH + 10, PLAYER_HEIGHT + 10);
+        }
+
+        // Draw stars
+        Iterator<Star> it = stars.iterator();
+        while (it.hasNext()) {
+            Star star = it.next();
+            g.setColor(star.color);
+            g.fillOval(star.x, star.y, 4, 4);
+            if (--star.lifetime <= 0) {
+                it.remove();
             }
         }
     }
@@ -291,7 +297,6 @@ public class SpaceGame extends JFrame implements KeyListener {
                     if (health <= 0) {
                         isGameOver = true;
                         stopGameTimers(); // Stop the game and end game timers
-                        gamePanel.repaint(); // Refresh to show the game over screen
                         break; // Exit loop to avoid concurrent modification exception
                     }
                 }
@@ -324,7 +329,7 @@ public class SpaceGame extends JFrame implements KeyListener {
 
     private void endGame() {
         isGameOver = true;
-        endGameTimer.stop(); // Stop the endGameTimer
+        stopGameTimers();
         gamePanel.repaint();
     }
 
