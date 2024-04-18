@@ -62,11 +62,13 @@ public class SpaceGame extends JFrame implements KeyListener {
     private static final int PROJECTILE_WIDTH = 5;
     private static final int PROJECTILE_HEIGHT = 15;
     private static final int PLAYER_SPEED = 10;
-    private static final int OBSTACLE_SPEED = 3;
+    private int OBSTACLE_SPEED = 3;
     private static final int PROJECTILE_SPEED = 10;
     private int score = 0;
     private int health = 5;
     private int remainingTime = 30;
+    private boolean levelSelected = false;
+    private int selectedLevel = 1; // Default to level 1
 
     private JPanel gamePanel;
     private JLabel scoreLabel;
@@ -128,32 +130,34 @@ public class SpaceGame extends JFrame implements KeyListener {
         isFiring = false;
         obstacles = new java.util.ArrayList<>();
 
-        timer = new Timer(20, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (!isGameOver) {
-                    update();
-                    gamePanel.repaint();
-                }
+    }
+
+    private void startGameTimers() {
+        timer = new Timer(20, e -> {
+            if (!isGameOver) {
+                update();
+                gamePanel.repaint();
             }
         });
         timer.start();
 
-        // Timer for 1 minute
-        endGameTimer = new Timer(1000, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                remainingTime--;
-                timeLabel.setText("Time: " + remainingTime + "s");
-                if (remainingTime <= 0) {
-                    endGame();
-                }
+        endGameTimer = new Timer(1000, e -> {
+            remainingTime--;
+            timeLabel.setText("Time: " + remainingTime + "s");
+            if (remainingTime <= 0) {
+                endGame();
             }
         });
-        endGameTimer.setRepeats(true); // Set to repeat
         endGameTimer.start();
+    }
 
-
+    private void stopGameTimers() {
+        if (timer != null) {
+            timer.stop();
+        }
+        if (endGameTimer != null) {
+            endGameTimer.stop();
+        }
     }
 
     private void startShieldTimer() {
@@ -184,52 +188,65 @@ public class SpaceGame extends JFrame implements KeyListener {
     }
 
     private void draw(Graphics g) {
-        /// Set the background to black
-        g.setColor(Color.BLACK);
-        g.fillRect(0, 0, WIDTH, HEIGHT);
+        if (!levelSelected) {
+            // Set the background to black
+            g.setColor(Color.BLACK);
+            g.fillRect(0, 0, WIDTH, HEIGHT);
 
-        // Draw the player using the player image
-        g.drawImage(playerImage, playerX, playerY, PLAYER_WIDTH, PLAYER_HEIGHT, this);
-
-        // Draw the projectile if it is visible, using a simple rectangle
-        if (isProjectileVisible) {
-            g.setColor(Color.GREEN);
-            g.fillRect(projectileX, projectileY, PROJECTILE_WIDTH, PROJECTILE_HEIGHT);
-        }
-
-        // Draw each obstacle using the obstacle image
-        for (Obstacle obstacle : obstacles) {
-            g.drawImage(obstacleImages[obstacle.spriteIndex], obstacle.position.x, obstacle.position.y, OBSTACLE_WIDTH, OBSTACLE_HEIGHT, this);
-        }
-
-        // Draw the shield if it is active
-        if (isShieldActive) {
-            g.setColor(Color.GREEN);
-            g.drawOval(playerX - 5, playerY - 5, PLAYER_WIDTH + 10, PLAYER_HEIGHT + 10);
-        }
-
-        // Draw stars
-        Iterator<Star> it = stars.iterator();
-        while (it.hasNext()) {
-            Star star = it.next();
-            g.setColor(star.color);
-            g.fillOval(star.x, star.y, 4, 4);
-            if (--star.lifetime <= 0) {
-                it.remove();
-            }
-        }
-
-        // If the game is over, draw the game over text
-        if (isGameOver) {
+            // Draw level selection options
             g.setColor(Color.WHITE);
             g.setFont(new Font("Arial", Font.BOLD, 24));
-            g.drawString("Game Over!", WIDTH / 2 - 80, HEIGHT / 2);
-            g.drawString("Press Enter to Play Again.", WIDTH / 2 - 150, HEIGHT / 2 + 20);
+            g.drawString("Select Level:", WIDTH / 2 - 100, HEIGHT / 2 - 30);
+            g.drawString("1 - Easy", WIDTH / 2 - 80, HEIGHT / 2);
+            g.drawString("2 - Hard", WIDTH / 2 - 80, HEIGHT / 2 + 30);
+        } else {
+            if (isGameOver) {
+                g.setColor(Color.BLACK);
+                g.fillRect(0, 0, WIDTH, HEIGHT); // Ensure background is cleared
+                g.setColor(Color.WHITE);
+                g.setFont(new Font("Arial", Font.BOLD, 24));
+                g.drawString("Game Over!", WIDTH / 2 - 80, HEIGHT / 2);
+                g.drawString("Press Enter to Play Again.", WIDTH / 2 - 150, HEIGHT / 2 + 20);
+            }
+            /// Set the background to black
+            g.setColor(Color.BLACK);
+            g.fillRect(0, 0, WIDTH, HEIGHT);
+
+            // Draw the player using the player image
+            g.drawImage(playerImage, playerX, playerY, PLAYER_WIDTH, PLAYER_HEIGHT, this);
+
+            // Draw the projectile if it is visible, using a simple rectangle
+            if (isProjectileVisible) {
+                g.setColor(Color.GREEN);
+                g.fillRect(projectileX, projectileY, PROJECTILE_WIDTH, PROJECTILE_HEIGHT);
+            }
+
+            // Draw each obstacle using the obstacle image
+            for (Obstacle obstacle : obstacles) {
+                g.drawImage(obstacleImages[obstacle.spriteIndex], obstacle.position.x, obstacle.position.y, OBSTACLE_WIDTH, OBSTACLE_HEIGHT, this);
+            }
+
+            // Draw the shield if it is active
+            if (isShieldActive) {
+                g.setColor(Color.GREEN);
+                g.drawOval(playerX - 5, playerY - 5, PLAYER_WIDTH + 10, PLAYER_HEIGHT + 10);
+            }
+
+            // Draw stars
+            Iterator<Star> it = stars.iterator();
+            while (it.hasNext()) {
+                Star star = it.next();
+                g.setColor(star.color);
+                g.fillOval(star.x, star.y, 4, 4);
+                if (--star.lifetime <= 0) {
+                    it.remove();
+                }
+            }
         }
     }
 
     private void update() {
-        if (!isGameOver) {
+        if (levelSelected && !isGameOver) {
             // Star Updater
             if (random.nextInt(10) < 1) {
                 int x = random.nextInt(WIDTH);
@@ -273,6 +290,8 @@ public class SpaceGame extends JFrame implements KeyListener {
                     iterator.remove(); // Remove the obstacle that collided with the player
                     if (health <= 0) {
                         isGameOver = true;
+                        stopGameTimers(); // Stop the game and end game timers
+                        gamePanel.repaint(); // Refresh to show the game over screen
                         break; // Exit loop to avoid concurrent modification exception
                     }
                 }
@@ -328,32 +347,59 @@ public class SpaceGame extends JFrame implements KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         int keyCode = e.getKeyCode();
-        if (keyCode == KeyEvent.VK_LEFT && playerX > 0) {
-            playerX -= PLAYER_SPEED;
-        } else if (keyCode == KeyEvent.VK_RIGHT && playerX < WIDTH - PLAYER_WIDTH) {
-            playerX += PLAYER_SPEED;
-        } else if (keyCode == KeyEvent.VK_SPACE && !isFiring) {
-            isFiring = true;
-            AudioPlayer.play("shoot.wav");
-            projectileX = playerX + PLAYER_WIDTH / 2 - PROJECTILE_WIDTH / 2;
-            projectileY = playerY;
-            isProjectileVisible = true;
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Thread.sleep(500); // Limit firing rate
-                        isFiring = false;
-                    } catch (InterruptedException ex) {
-                        ex.printStackTrace();
+
+        // Handle level selection if no level has been selected
+        if (!levelSelected) {
+            if (keyCode == KeyEvent.VK_1) {
+                selectedLevel = 1;  // Select Easy level
+                levelSelected = true;
+                OBSTACLE_SPEED = 3;  // Example speed setting for Easy level
+                startGameTimers();
+            } else if (keyCode == KeyEvent.VK_2) {
+                selectedLevel = 2;  // Select Hard level
+                levelSelected = true;
+                OBSTACLE_SPEED = 6;  // Example speed setting for Hard level
+                startGameTimers();
+            }
+            gamePanel.repaint(); // Redraw the panel to exit level selection screen
+            return; // Exit the method to prevent further processing until a level is selected
+        }
+
+        // Game controls
+        if (!isGameOver) {
+            if (keyCode == KeyEvent.VK_LEFT && playerX > 0) {
+                playerX -= PLAYER_SPEED;
+            } else if (keyCode == KeyEvent.VK_RIGHT && playerX < WIDTH - PLAYER_WIDTH) {
+                playerX += PLAYER_SPEED;
+            } else if (keyCode == KeyEvent.VK_SPACE && !isFiring) {
+                isFiring = true;
+                AudioPlayer.play("shoot.wav");
+                projectileX = playerX + PLAYER_WIDTH / 2 - PROJECTILE_WIDTH / 2;
+                projectileY = playerY;
+                isProjectileVisible = true;
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Thread.sleep(500); // Limit firing rate
+                            isFiring = false;
+                        } catch (InterruptedException ex) {
+                            ex.printStackTrace();
+                        }
                     }
-                }
-            }).start();
-        } else if (keyCode == KeyEvent.VK_ENTER && isGameOver) {
+                }).start();
+            } else if (keyCode == KeyEvent.VK_S && !isShieldActive) {
+                isShieldActive = true;
+                startShieldTimer(); // Start the shield timer
+            }
+        }
+
+        // Restart game if game over and enter is pressed
+        if (keyCode == KeyEvent.VK_ENTER && isGameOver) {
             restartGame();
-        } else if (keyCode == KeyEvent.VK_S && !isShieldActive) {
-            isShieldActive = true;
-            startShieldTimer(); // Start the shield timer
+            levelSelected = false;  // Ensure level selection screen shows up again
+            stopGameTimers();  // Stop the game timers
+            gamePanel.repaint();  // Redraw the level selection screen
         }
     }
 
