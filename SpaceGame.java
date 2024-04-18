@@ -48,7 +48,7 @@ public class SpaceGame extends JFrame implements KeyListener {
     private static final int OBSTACLE_SPEED = 3;
     private static final int PROJECTILE_SPEED = 10;
     private int score = 0;
-    private int health = 100;
+    private int health = 10;
     private int remainingTime = 10;
 
     private JPanel gamePanel;
@@ -86,7 +86,7 @@ public class SpaceGame extends JFrame implements KeyListener {
         scoreLabel.setForeground(Color.BLUE);
         gamePanel.add(scoreLabel);
 
-        healthLabel = new JLabel("Health: 100");
+        healthLabel = new JLabel("Health: 10");
         healthLabel.setBounds(10, 0, 100, 20);
         healthLabel.setForeground(Color.ORANGE);
         gamePanel.add(healthLabel);
@@ -274,7 +274,8 @@ public class SpaceGame extends JFrame implements KeyListener {
         // Reset all game state variables
         score = 0;
         health = 100;
-        remainingTime = 60;
+        remainingTime = 10;
+        endGameTimer.start();
         playerX = WIDTH / 2 - PLAYER_WIDTH / 2;
         playerY = HEIGHT - PLAYER_HEIGHT - 20;
         projectileX = playerX + PLAYER_WIDTH / 2 - PROJECTILE_WIDTH / 2;
