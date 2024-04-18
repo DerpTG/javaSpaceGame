@@ -268,12 +268,13 @@ public class SpaceGame extends JFrame implements KeyListener {
     private void endGame() {
         isGameOver = true;
         endGameTimer.stop(); // Stop the endGameTimer
+        gamePanel.repaint();
     }
 
     private void restartGame() {
         // Reset all game state variables
         score = 0;
-        health = 100;
+        health = 10;
         remainingTime = 10;
         endGameTimer.start();
         playerX = WIDTH / 2 - PLAYER_WIDTH / 2;
