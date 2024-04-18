@@ -187,7 +187,7 @@ public class SpaceGame extends JFrame implements KeyListener {
             g.setColor(Color.WHITE);
             g.setFont(new Font("Arial", Font.BOLD, 24));
             g.drawString("Game Over!", WIDTH / 2 - 80, HEIGHT / 2);
-            g.drawString("Press Enter to play again", WIDTH / 2 - 150, HEIGHT / 2 + 20);
+            g.drawString("Press Enter to Play Again.", WIDTH / 2 - 150, HEIGHT / 2 + 20);
         }
     }
 
