@@ -7,6 +7,24 @@ import java.util.Iterator;
 import java.util.Random;
 import java.util.List;
 import java.util.ArrayList;
+import javax.sound.sampled.AudioInputStream;
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import java.io.File;
+
+class AudioPlayer {
+    // Method to play audio from a file
+    public static void play(String filePath) {
+        try {
+            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(filePath).getAbsoluteFile());
+            Clip clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
 
 class Star {
     int x, y;
@@ -34,7 +52,6 @@ class Obstacle {
 public class SpaceGame extends JFrame implements KeyListener {
     private Random random = new Random();
     private List<Star> stars = new ArrayList<>();
-    private int starDelay = 0;
 
     private static final int WIDTH = 500;
     private static final int HEIGHT = 500;
@@ -231,6 +248,7 @@ public class SpaceGame extends JFrame implements KeyListener {
                 Rectangle obstacleRect = new Rectangle(obstacle.position.x, obstacle.position.y, OBSTACLE_WIDTH, OBSTACLE_HEIGHT);
                 if (playerRect.intersects(obstacleRect)) {
                     health -= 1;
+                    AudioPlayer.play("fire.wav");
                     iterator.remove(); // Remove the obstacle that collided with the player
                     if (health <= 0) {
                         isGameOver = true;
