@@ -66,7 +66,7 @@ public class SpaceGame extends JFrame implements KeyListener {
     private static final int PROJECTILE_SPEED = 10;
     private int score = 0;
     private int health = 5;
-    private int remainingTime = 20;
+    private int remainingTime = 30;
 
     private JPanel gamePanel;
     private JLabel scoreLabel;
@@ -204,7 +204,7 @@ public class SpaceGame extends JFrame implements KeyListener {
 
         // Draw the shield if it is active
         if (isShieldActive) {
-            g.setColor(Color.BLUE);
+            g.setColor(Color.GREEN);
             g.drawOval(playerX - 5, playerY - 5, PLAYER_WIDTH + 10, PLAYER_HEIGHT + 10);
         }
 
@@ -313,7 +313,7 @@ public class SpaceGame extends JFrame implements KeyListener {
         // Reset all game state variables
         score = 0;
         health = 5;
-        remainingTime = 20;
+        remainingTime = 30;
         endGameTimer.start();
         playerX = WIDTH / 2 - PLAYER_WIDTH / 2;
         playerY = HEIGHT - PLAYER_HEIGHT - 20;
