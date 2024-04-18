@@ -77,6 +77,7 @@ public class SpaceGame extends JFrame implements KeyListener {
     private Timer endGameTimer;
     private Timer shieldTimer;
     private boolean isGameOver;
+    private boolean shieldUsed = false;
     private int playerX, playerY;
     private int projectileX, projectileY;
     private boolean isProjectileVisible;
@@ -344,6 +345,7 @@ public class SpaceGame extends JFrame implements KeyListener {
         projectileY = playerY;
         isProjectileVisible = false;
         isGameOver = false;
+        shieldUsed = false;
         obstacles.clear(); // Clear all obstacles
         gamePanel.repaint(); // Redraw the panel to update the UI
     }
@@ -390,8 +392,9 @@ public class SpaceGame extends JFrame implements KeyListener {
                         }
                     }
                 }).start();
-            } else if (keyCode == KeyEvent.VK_S && !isShieldActive) {
+            } else if (keyCode == KeyEvent.VK_S && !isShieldActive && !shieldUsed) {
                 isShieldActive = true;
+                shieldUsed = true; // Mark the shield as used
                 startShieldTimer(); // Start the shield timer
             }
         }
