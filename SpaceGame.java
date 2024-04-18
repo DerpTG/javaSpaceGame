@@ -65,8 +65,8 @@ public class SpaceGame extends JFrame implements KeyListener {
     private static final int OBSTACLE_SPEED = 3;
     private static final int PROJECTILE_SPEED = 10;
     private int score = 0;
-    private int health = 10;
-    private int remainingTime = 10;
+    private int health = 5;
+    private int remainingTime = 20;
 
     private JPanel gamePanel;
     private JLabel scoreLabel;
@@ -74,11 +74,13 @@ public class SpaceGame extends JFrame implements KeyListener {
     private JLabel timeLabel;
     private Timer timer;
     private Timer endGameTimer;
+    private Timer shieldTimer;
     private boolean isGameOver;
     private int playerX, playerY;
     private int projectileX, projectileY;
     private boolean isProjectileVisible;
     private boolean isFiring;
+    private boolean isShieldActive = false;
     private List<Obstacle> obstacles = new ArrayList<>();
     private Image playerImage = new ImageIcon(getClass().getResource("rsH6n.png")).getImage();
     private Image[] obstacleImages = new Image[4];
@@ -103,7 +105,7 @@ public class SpaceGame extends JFrame implements KeyListener {
         scoreLabel.setForeground(Color.BLUE);
         gamePanel.add(scoreLabel);
 
-        healthLabel = new JLabel("Health: 10");
+        healthLabel = new JLabel("Health: 5");
         healthLabel.setBounds(10, 0, 100, 20);
         healthLabel.setForeground(Color.ORANGE);
         gamePanel.add(healthLabel);
@@ -151,6 +153,19 @@ public class SpaceGame extends JFrame implements KeyListener {
         endGameTimer.setRepeats(true); // Set to repeat
         endGameTimer.start();
 
+
+    }
+
+    private void startShieldTimer() {
+        shieldTimer = new Timer(5000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                isShieldActive = false; // Deactivate the shield after 5 seconds
+                shieldTimer.stop(); // Stop the timer
+            }
+        });
+        shieldTimer.setRepeats(false); // Set to run once
+        shieldTimer.start(); // Start the timer
     }
 
     private void loadObstacleSprites() {
@@ -185,6 +200,12 @@ public class SpaceGame extends JFrame implements KeyListener {
         // Draw each obstacle using the obstacle image
         for (Obstacle obstacle : obstacles) {
             g.drawImage(obstacleImages[obstacle.spriteIndex], obstacle.position.x, obstacle.position.y, OBSTACLE_WIDTH, OBSTACLE_HEIGHT, this);
+        }
+
+        // Draw the shield if it is active
+        if (isShieldActive) {
+            g.setColor(Color.BLUE);
+            g.drawOval(playerX - 5, playerY - 5, PLAYER_WIDTH + 10, PLAYER_HEIGHT + 10);
         }
 
         // Draw stars
@@ -246,9 +267,9 @@ public class SpaceGame extends JFrame implements KeyListener {
             while (iterator.hasNext()) {
                 Obstacle obstacle = iterator.next();
                 Rectangle obstacleRect = new Rectangle(obstacle.position.x, obstacle.position.y, OBSTACLE_WIDTH, OBSTACLE_HEIGHT);
-                if (playerRect.intersects(obstacleRect)) {
+                if (playerRect.intersects(obstacleRect) && !isShieldActive) {
                     health -= 1;
-                    AudioPlayer.play("fire.wav");
+                    AudioPlayer.play("dead.wav");
                     iterator.remove(); // Remove the obstacle that collided with the player
                     if (health <= 0) {
                         isGameOver = true;
@@ -291,8 +312,8 @@ public class SpaceGame extends JFrame implements KeyListener {
     private void restartGame() {
         // Reset all game state variables
         score = 0;
-        health = 10;
-        remainingTime = 10;
+        health = 5;
+        remainingTime = 20;
         endGameTimer.start();
         playerX = WIDTH / 2 - PLAYER_WIDTH / 2;
         playerY = HEIGHT - PLAYER_HEIGHT - 20;
@@ -313,6 +334,7 @@ public class SpaceGame extends JFrame implements KeyListener {
             playerX += PLAYER_SPEED;
         } else if (keyCode == KeyEvent.VK_SPACE && !isFiring) {
             isFiring = true;
+            AudioPlayer.play("shoot.wav");
             projectileX = playerX + PLAYER_WIDTH / 2 - PROJECTILE_WIDTH / 2;
             projectileY = playerY;
             isProjectileVisible = true;
@@ -329,6 +351,9 @@ public class SpaceGame extends JFrame implements KeyListener {
             }).start();
         } else if (keyCode == KeyEvent.VK_ENTER && isGameOver) {
             restartGame();
+        } else if (keyCode == KeyEvent.VK_S && !isShieldActive) {
+            isShieldActive = true;
+            startShieldTimer(); // Start the shield timer
         }
     }
 
