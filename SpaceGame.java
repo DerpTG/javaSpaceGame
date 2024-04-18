@@ -68,7 +68,6 @@ public class SpaceGame extends JFrame implements KeyListener {
     private int health = 5;
     private int remainingTime = 30;
     private boolean levelSelected = false;
-    private int selectedLevel = 1; // Default to level 1
 
     private JPanel gamePanel;
     private JLabel scoreLabel;
@@ -356,12 +355,10 @@ public class SpaceGame extends JFrame implements KeyListener {
         // Handle level selection if no level has been selected
         if (!levelSelected) {
             if (keyCode == KeyEvent.VK_1) {
-                selectedLevel = 1;  // Select Easy level
                 levelSelected = true;
                 OBSTACLE_SPEED = 3;  // Example speed setting for Easy level
                 startGameTimers();
             } else if (keyCode == KeyEvent.VK_2) {
-                selectedLevel = 2;  // Select Hard level
                 levelSelected = true;
                 OBSTACLE_SPEED = 6;  // Example speed setting for Hard level
                 startGameTimers();
