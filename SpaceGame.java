@@ -152,7 +152,6 @@ public class SpaceGame extends JFrame implements KeyListener {
     }
 
     private void draw(Graphics g) {
-        Random random = new Random();
         /// Set the background to black
         g.setColor(Color.BLACK);
         g.fillRect(0, 0, WIDTH, HEIGHT);
