@@ -76,6 +76,9 @@ public class SpaceGame extends JFrame implements KeyListener {
     private Timer timer;
     private Timer endGameTimer;
     private Timer shieldTimer;
+    private Timer powerUpTimer;
+    private boolean healthBuffActive = false;
+    private boolean timeBuffActive = false;
     private boolean isGameOver;
     private boolean shieldUsed = false;
     private int playerX, playerY;
@@ -86,6 +89,9 @@ public class SpaceGame extends JFrame implements KeyListener {
     private List<Obstacle> obstacles = new ArrayList<>();
     private Image playerImage = new ImageIcon(getClass().getResource("rsH6n.png")).getImage();
     private Image[] obstacleImages = new Image[4];
+    private Image healthBuff;
+    private Image timeBuff;
+    private Point powerUpPosition;
 
     public SpaceGame() {
         setTitle("Space Game");
@@ -137,6 +143,13 @@ public class SpaceGame extends JFrame implements KeyListener {
         isFiring = false;
         obstacles = new java.util.ArrayList<>();
 
+        // Load power-up images
+        healthBuff = new ImageIcon(getClass().getResource("heartBuff.png")).getImage();
+        timeBuff = new ImageIcon(getClass().getResource("timeBuff.png")).getImage();
+
+        // Initialize the position for power-ups (default starting location of the ship)
+        powerUpPosition = new Point(WIDTH / 2 - PLAYER_WIDTH / 2, HEIGHT - PLAYER_HEIGHT - 20);
+
     }
 
     private void startGameTimers() {
@@ -156,6 +169,19 @@ public class SpaceGame extends JFrame implements KeyListener {
             }
         });
         endGameTimer.start();
+
+        // Initialize and start the power-up timer
+        powerUpTimer = new Timer(15000, e -> {
+            if (new Random().nextBoolean()) {
+                healthBuffActive = true;  // Randomly activate one of the buffs
+            } else {
+                timeBuffActive = true;
+            }
+            gamePanel.repaint();  // Redraw to display the power-up
+        });
+        powerUpTimer.setRepeats(false);  // Ensure the timer runs only once
+        powerUpTimer.start();
+
     }
 
     private void stopGameTimers() {
@@ -164,6 +190,9 @@ public class SpaceGame extends JFrame implements KeyListener {
         }
         if (endGameTimer != null) {
             endGameTimer.stop();
+        }
+        if (powerUpTimer != null) {
+            powerUpTimer.stop();
         }
     }
 
@@ -249,6 +278,13 @@ public class SpaceGame extends JFrame implements KeyListener {
                 it.remove();
             }
         }
+
+        if (healthBuffActive) {
+            g.drawImage(healthBuff, powerUpPosition.x, powerUpPosition.y, PLAYER_WIDTH, PLAYER_HEIGHT, this);
+        } else if (timeBuffActive) {
+            g.drawImage(timeBuff, powerUpPosition.x, powerUpPosition.y, PLAYER_WIDTH, PLAYER_HEIGHT, this);
+        }
+
     }
 
     private void update() {
@@ -286,6 +322,17 @@ public class SpaceGame extends JFrame implements KeyListener {
 
             // Check collision with player
             Rectangle playerRect = new Rectangle(playerX, playerY, PLAYER_WIDTH, PLAYER_HEIGHT);
+            Rectangle powerUpRect = new Rectangle(powerUpPosition.x, powerUpPosition.y, PLAYER_WIDTH, PLAYER_HEIGHT);
+
+            if (healthBuffActive && playerRect.intersects(powerUpRect)) {
+                health *= 2;  // Double the player's health
+                healthBuffActive = false;  // Deactivate the buff
+            }
+            if (timeBuffActive && playerRect.intersects(powerUpRect)) {
+                remainingTime *= 2;  // Double the remaining time
+                timeBuffActive = false;  // Deactivate the buff
+            }
+
             iterator = obstacles.iterator();
             while (iterator.hasNext()) {
                 Obstacle obstacle = iterator.next();
@@ -338,7 +385,7 @@ public class SpaceGame extends JFrame implements KeyListener {
         score = 0;
         health = 5;
         remainingTime = 30;
-        endGameTimer.start();
+        startGameTimers();
         playerX = WIDTH / 2 - PLAYER_WIDTH / 2;
         playerY = HEIGHT - PLAYER_HEIGHT - 20;
         projectileX = playerX + PLAYER_WIDTH / 2 - PROJECTILE_WIDTH / 2;
@@ -346,8 +393,10 @@ public class SpaceGame extends JFrame implements KeyListener {
         isProjectileVisible = false;
         isGameOver = false;
         shieldUsed = false;
-        obstacles.clear(); // Clear all obstacles
-        gamePanel.repaint(); // Redraw the panel to update the UI
+        healthBuffActive = false;
+        timeBuffActive = false;
+        obstacles.clear();
+        gamePanel.repaint();
     }
 
     @Override
@@ -358,15 +407,15 @@ public class SpaceGame extends JFrame implements KeyListener {
         if (!levelSelected) {
             if (keyCode == KeyEvent.VK_1) {
                 levelSelected = true;
-                OBSTACLE_SPEED = 3;  // Example speed setting for Easy level
+                OBSTACLE_SPEED = 3;
                 startGameTimers();
             } else if (keyCode == KeyEvent.VK_2) {
                 levelSelected = true;
-                OBSTACLE_SPEED = 6;  // Example speed setting for Hard level
+                OBSTACLE_SPEED = 6;
                 startGameTimers();
             }
-            gamePanel.repaint(); // Redraw the panel to exit level selection screen
-            return; // Exit the method to prevent further processing until a level is selected
+            gamePanel.repaint();
+            return;
         }
 
         // Game controls
@@ -385,7 +434,7 @@ public class SpaceGame extends JFrame implements KeyListener {
                     @Override
                     public void run() {
                         try {
-                            Thread.sleep(500); // Limit firing rate
+                            Thread.sleep(500);
                             isFiring = false;
                         } catch (InterruptedException ex) {
                             ex.printStackTrace();
@@ -394,17 +443,17 @@ public class SpaceGame extends JFrame implements KeyListener {
                 }).start();
             } else if (keyCode == KeyEvent.VK_S && !isShieldActive && !shieldUsed) {
                 isShieldActive = true;
-                shieldUsed = true; // Mark the shield as used
-                startShieldTimer(); // Start the shield timer
+                shieldUsed = true;
+                startShieldTimer();
             }
         }
 
         // Restart game if game over and enter is pressed
         if (keyCode == KeyEvent.VK_ENTER && isGameOver) {
             restartGame();
-            levelSelected = false;  // Ensure level selection screen shows up again
-            stopGameTimers();  // Stop the game timers
-            gamePanel.repaint();  // Redraw the level selection screen
+            levelSelected = false;
+            stopGameTimers();
+            gamePanel.repaint();
         }
     }
 
