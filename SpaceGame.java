@@ -1,5 +1,5 @@
-/** Project: Lab 4 Systems Integration Pizza Shop
- * Purpose Details: System Integration Using Flat Files, RabbitMQ, and Web Service/JSON
+/** Project: Lab 6 Game Assignment
+ * Purpose Details: To Demonstrate Game Design Skills Via Java
  * Course: IST 242
  * Author: Felix Naroditskiy
  * Date Developed: 4/15/2024
