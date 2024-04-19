@@ -1,3 +1,13 @@
+/** Project: Lab 4 Systems Integration Pizza Shop
+ * Purpose Details: System Integration Using Flat Files, RabbitMQ, and Web Service/JSON
+ * Course: IST 242
+ * Author: Felix Naroditskiy
+ * Date Developed: 4/15/2024
+ * Last Date Changed: 4/19/2024
+ * Rev: 1.0
+
+ */
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
